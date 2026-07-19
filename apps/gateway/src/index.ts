@@ -3,7 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { Redis } from "ioredis";
 import jwt from "jsonwebtoken";
 
-const PORT = Number(process.env.GATEWAY_PORT ?? 4012);
+const PORT = Number(process.env.PORT ?? process.env.GATEWAY_PORT ?? 4012);
 const REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev-access-secret-change-me";
 
