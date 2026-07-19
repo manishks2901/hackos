@@ -17,6 +17,7 @@ import { messageRoutes } from "./messages/routes.js";
 import { submissionRoutes } from "./submissions/routes.js";
 import { analyticsRoutes } from "./analytics/routes.js";
 import { sponsorRoutes } from "./sponsors/routes.js";
+import { extensionRoutes } from "./extension/routes.js";
 
 const app = Fastify({ logger: true });
 
@@ -44,6 +45,7 @@ await app.register(messageRoutes);
 await app.register(submissionRoutes);
 await app.register(analyticsRoutes);
 await app.register(sponsorRoutes);
+await app.register(extensionRoutes);
 
 // Object storage reachability (non-fatal): logs whether the S3/MinIO bucket is
 // usable at boot, so misconfigured credentials surface immediately.
