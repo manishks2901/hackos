@@ -2,6 +2,10 @@
   "name": "hackos-monorepo",
   "private": true,
   "description": "AI-powered IDE-native operating system for hackathons",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "build": "pnpm -r build",
@@ -13,6 +17,7 @@
     "dev:workers": "pnpm --filter @hackos/workers dev"
   },
   "devDependencies": {
+    "railway": "^3.5.9",
     "typescript": "^5.6.0"
   }
 }
