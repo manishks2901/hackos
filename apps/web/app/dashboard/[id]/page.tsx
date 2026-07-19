@@ -86,6 +86,55 @@ const CATEGORIES = [
 
 const AI_URL = process.env.NEXT_PUBLIC_AI_URL ?? "http://localhost:4011";
 
+const EXT_DOWNLOAD_URL = "https://api-production-c174.up.railway.app/v1/extension/download";
+const EXT_INSTALL_CMD = `curl -L -o hackos.vsix "${EXT_DOWNLOAD_URL}" && code --install-extension hackos.vsix`;
+
+// Shown to participants/mentors: how to get the VS Code extension.
+function ExtensionBanner() {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(EXT_INSTALL_CMD);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked — the download link still works */
+    }
+  }
+  return (
+    <div className="card" style={{ marginBottom: 20 }}>
+      <strong>Get the HackOS VS Code extension</strong>
+      <p className="hint" style={{ margin: "4px 0 10px" }}>
+        Install it to see announcements, docs, deadlines, chat and submissions right inside your
+        editor. Then run <span className="mono">Hackathon: Sign In</span>.
+      </p>
+      <div
+        className="mono"
+        style={{
+          fontSize: 12,
+          background: "var(--bg)",
+          border: "1px solid var(--border)",
+          borderRadius: 8,
+          padding: "10px 12px",
+          overflowX: "auto",
+          whiteSpace: "nowrap",
+          color: "var(--text)",
+        }}
+      >
+        {EXT_INSTALL_CMD}
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <button type="button" className="btn btn-sm" onClick={copy}>
+          {copied ? "Copied ✓" : "Copy install command"}
+        </button>
+        <a className="btn-ghost btn-sm" href={EXT_DOWNLOAD_URL} style={{ display: "inline-flex", alignItems: "center" }}>
+          Download .vsix
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function EventPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -107,6 +156,10 @@ export default function EventPage() {
   if (!event) return <main style={{ padding: 48 }} className="hint">Loading…</main>;
 
   const isOrganizer = event.role === "organizer";
+  // Analytics and Invites are organizer-only on the API; hide them from everyone
+  // else so participants/mentors don't hit "requires role: organizer".
+  const ORGANIZER_ONLY = ["Analytics", "Invites"];
+  const visibleTabs = TABS.filter((t) => isOrganizer || !ORGANIZER_ONLY.includes(t));
 
   return (
     <main style={{ maxWidth: 860, margin: "0 auto", padding: "40px 24px" }}>
@@ -120,8 +173,10 @@ export default function EventPage() {
         </p>
       </header>
 
+      {!isOrganizer && <ExtensionBanner />}
+
       <div className="tabs">
-        {TABS.map((t) => (
+        {visibleTabs.map((t) => (
           <button key={t} className={`tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
             {t}
           </button>
@@ -133,8 +188,8 @@ export default function EventPage() {
       {tab === "Timeline" && <TimelineTab id={id} isOrganizer={isOrganizer} />}
       {tab === "Teams & Submissions" && <TeamsTab id={id} isOrganizer={isOrganizer} />}
       {tab === "Sponsors" && <SponsorsTab id={id} isOrganizer={isOrganizer} />}
-      {tab === "Analytics" && <AnalyticsTab id={id} />}
-      {tab === "Invites" && <InvitesTab id={id} />}
+      {tab === "Analytics" && isOrganizer && <AnalyticsTab id={id} />}
+      {tab === "Invites" && isOrganizer && <InvitesTab id={id} />}
     </main>
   );
 }
