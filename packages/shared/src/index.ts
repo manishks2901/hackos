@@ -137,11 +137,6 @@ export const createTimelineItemSchema = z.object({
 });
 export type CreateTimelineItemInput = z.infer<typeof createTimelineItemSchema>;
 
-export const createIntegrationSchema = z.object({
-  kind: z.enum(["discord", "telegram"]),
-  config: z.record(z.string(), z.unknown()).default({}),
-});
-
 export interface TimelineItem {
   id: string;
   hackathonId: string;

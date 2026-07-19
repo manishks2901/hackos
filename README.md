@@ -10,7 +10,7 @@ AI-powered, IDE-native operating system for hackathons. See `features.md`, `arch
 | `apps/api` | Core REST API (Fastify) — auth, events, content |
 | `apps/ai` | AI service (RAG over event content, OpenAI) |
 | `apps/gateway` | Realtime WebSocket gateway (Redis pub/sub backplane) |
-| `apps/workers` | Background jobs (ingestion, Discord/Telegram broadcast) |
+| `apps/workers` | Background jobs (content ingestion & indexing) |
 | `extension/` | VS Code extension for participants |
 | `packages/shared` | Shared types + zod schemas |
 | `packages/db` | Postgres pool + SQL migrations (pgvector) |

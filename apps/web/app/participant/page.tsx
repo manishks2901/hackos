@@ -11,11 +11,25 @@ import { api } from "../../lib/api";
  * then show exactly how to use it inside VS Code. Optionally they can redeem an
  * invite code here so they're already joined when they open the editor.
  */
+const DOWNLOAD_URL = "https://api-production-c174.up.railway.app/v1/extension/download";
+const INSTALL_CMD = `curl -L -o hackos.vsix "${DOWNLOAD_URL}" && code --install-extension hackos.vsix`;
+
 export default function ParticipantOnboarding() {
   const [account, setAccount] = useState<{ email: string; name: string } | null>(null);
   const [code, setCode] = useState("");
   const [joinState, setJoinState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [joinMsg, setJoinMsg] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function copyInstall() {
+    try {
+      await navigator.clipboard.writeText(INSTALL_CMD);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked — the link below still works */
+    }
+  }
 
   async function joinWithCode(e: React.FormEvent) {
     e.preventDefault();
@@ -59,14 +73,48 @@ export default function ParticipantOnboarding() {
             <h1 style={{ fontSize: 21, letterSpacing: "-0.02em", marginBottom: 6 }}>
               You&apos;re set, {account.name.split(" ")[0] || "there"} 🎉
             </h1>
-            <p className="hint" style={{ marginTop: 0, marginBottom: 18 }}>
+            <p className="hint" style={{ marginTop: 0, marginBottom: 16 }}>
               Now use <span className="mono">{account.email}</span> to sign in inside VS Code.
             </p>
 
+            <div style={{ marginBottom: 18 }}>
+              <div
+                className="mono"
+                style={{
+                  fontSize: 12,
+                  background: "var(--bg)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  overflowX: "auto",
+                  whiteSpace: "nowrap",
+                  color: "var(--text)",
+                }}
+              >
+                {INSTALL_CMD}
+              </div>
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <button type="button" className="btn btn-sm" onClick={copyInstall}>
+                  {copied ? "Copied ✓" : "Copy install command"}
+                </button>
+                <a
+                  className="btn-ghost btn-sm"
+                  href={DOWNLOAD_URL}
+                  style={{ display: "inline-flex", alignItems: "center" }}
+                >
+                  Download .vsix
+                </a>
+              </div>
+              <p className="hint" style={{ marginTop: 8, marginBottom: 0 }}>
+                Run the command in a terminal, or download the file and use VS Code →{" "}
+                <em>Extensions ⋯ → Install from VSIX…</em>
+              </p>
+            </div>
+
             <ol className="steps" style={{ paddingLeft: 18, margin: "0 0 20px", lineHeight: 1.6 }}>
-              <li>Open <strong>VS Code</strong> and install the <strong>HackOS</strong> extension.</li>
+              <li>Install the <strong>HackOS</strong> extension using the command above.</li>
               <li>
-                Press <span className="mono">Cmd/Ctrl+Shift+P</span> →{" "}
+                In VS Code press <span className="mono">Cmd/Ctrl+Shift+P</span> →{" "}
                 <strong>Hackathon: Sign In</strong> → enter this email &amp; your password.
               </li>
               <li>

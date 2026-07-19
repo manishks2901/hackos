@@ -84,7 +84,7 @@ function VSCodeMock() {
               <div className="t-body">Submission deadline extended by 2 hours — now 6:00 PM.</div>
               <div className="t-meta">
                 <span>delivered by Hackat 🐈</span>
-                <span>→ also sent to Discord + Telegram</span>
+                <span>→ live in every connected IDE</span>
               </div>
             </div>
           </div>
@@ -108,7 +108,6 @@ const DASH_TABS = [
   "Teams & Submissions",
   "Analytics",
   "Invites",
-  "Integrations",
 ] as const;
 
 function DashPanel({ tab }: { tab: (typeof DASH_TABS)[number] }) {
@@ -156,7 +155,7 @@ function DashPanel({ tab }: { tab: (typeof DASH_TABS)[number] }) {
           <div className="dash-row">
             <div>
               <div className="r-title">Submission deadline extended to 6:00 PM</div>
-              <div className="r-sub">reached 412 IDEs in 1.4s · Discord ✓ · Telegram ✓</div>
+              <div className="r-sub">reached 412 connected IDEs in 1.4s</div>
             </div>
             <span className="dash-pill high">HIGH</span>
           </div>
@@ -175,8 +174,8 @@ function DashPanel({ tab }: { tab: (typeof DASH_TABS)[number] }) {
             <span className="dash-pill">normal</span>
           </div>
           <div className="dash-note">
-            High-priority updates toast in every editor; normal ones badge quietly. One publish, all
-            channels.
+            High-priority updates toast in every editor; normal ones badge quietly. One publish,
+            every IDE.
           </div>
         </div>
       );
@@ -295,36 +294,6 @@ function DashPanel({ tab }: { tab: (typeof DASH_TABS)[number] }) {
           </div>
         </div>
       );
-    case "Integrations":
-      return (
-        <div className="dash-panel">
-          <div className="dash-row">
-            <div>
-              <div className="r-title">Discord — #announcements</div>
-              <div className="r-sub">bot connected · all priorities</div>
-            </div>
-            <span className="dash-pill ok">connected</span>
-          </div>
-          <div className="dash-row">
-            <div>
-              <div className="r-title">Telegram — @hacknight2026</div>
-              <div className="r-sub">filter: high priority only</div>
-            </div>
-            <span className="dash-pill ok">connected</span>
-          </div>
-          <div className="dash-row">
-            <div>
-              <div className="r-title">Delivery log</div>
-              <div className="r-sub">last broadcast: sent to 2/2 channels · retries automatic</div>
-            </div>
-            <span className="dash-pill">2 sent · 0 failed</span>
-          </div>
-          <div className="dash-note">
-            Connect once from the dashboard; every announcement fans out with per-channel formatting
-            and delivery logs.
-          </div>
-        </div>
-      );
   }
 }
 
@@ -388,7 +357,7 @@ export default function Home() {
             <span className="grad">inside your IDE.</span>
           </h1>
           <p className="sub stagger d3">
-            Stop juggling Discord, email, Drive and Devpost. HackOS syncs every announcement, doc,
+            Stop juggling chat apps, email, Drive and Devpost. HackOS syncs every announcement, doc,
             deadline and mentor into VS Code — with an AI that answers event questions, with
             citations, in seconds.
           </p>
@@ -512,21 +481,19 @@ export default function Home() {
       <section id="broadcast" style={{ paddingTop: 0 }}>
         <div className="wrap">
           <div className="kicker reveal">Broadcast</div>
-          <h2 className="reveal">Publish once, reach everywhere</h2>
+          <h2 className="reveal">Publish once, reach every editor</h2>
 
           <div className="broadcast reveal">
             <div>
-              <h3>One publish → IDE + Discord + Telegram</h3>
+              <h3>One publish → every connected IDE</h3>
               <p>
-                Connect your Discord server and Telegram group once. Every announcement broadcasts
-                everywhere simultaneously — formatted per channel, priority-marked, with delivery
-                logs on your dashboard.
+                Publish an announcement once and it lands in every connected IDE simultaneously —
+                priority-marked and delivered in real time, with a full delivery log on your
+                dashboard.
               </p>
             </div>
             <div className="chips">
               <span className="chip"><span className="sq" style={{ background: "#7c6cff" }} /> VS Code</span>
-              <span className="chip"><span className="sq" style={{ background: "#5865F2" }} /> Discord</span>
-              <span className="chip"><span className="sq" style={{ background: "#2AABEE" }} /> Telegram</span>
             </div>
           </div>
 
@@ -536,16 +503,6 @@ export default function Home() {
               <span className="ts">17:58:02.114</span>
               <span>vscode · 412 connected IDEs</span>
               <span className="ok">delivered in 1.4s</span>
-            </div>
-            <div className="dlog-row">
-              <span className="ts">17:58:02.377</span>
-              <span>discord · #announcements</span>
-              <span className="ok">sent</span>
-            </div>
-            <div className="dlog-row">
-              <span className="ts">17:58:02.651</span>
-              <span>telegram · @hacknight2026</span>
-              <span className="ok">sent</span>
             </div>
           </div>
         </div>
@@ -640,8 +597,8 @@ export default function Home() {
             <div className="step reveal" style={{ ["--rd" as string]: "100ms" }}>
               <h3>Everyone stays in flow</h3>
               <p>
-                Updates stream to every IDE, Discord server and Telegram group at once. Questions
-                get instant cited answers instead of pinging organizers.
+                Updates stream to every connected IDE in real time. Questions get instant cited
+                answers instead of pinging organizers.
               </p>
             </div>
           </div>

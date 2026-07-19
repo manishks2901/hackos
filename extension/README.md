@@ -1,6 +1,6 @@
 # HackOS — The entire hackathon, inside your IDE
 
-Stop juggling Discord, email, Drive and Devpost. HackOS syncs every announcement, doc, deadline and mentor into VS Code — with an AI assistant that answers event questions, with citations, in seconds.
+Stop juggling chat apps, email, Drive and Devpost. HackOS syncs every announcement, doc, deadline and mentor into VS Code — with an AI assistant that answers event questions, with citations, in seconds.
 
 ## What you get
 
@@ -40,4 +40,4 @@ Point the extension at your HackOS deployment (defaults are local development):
 
 ---
 
-Organizers: create and manage events on the HackOS dashboard. One publish reaches every IDE, Discord and Telegram simultaneously.
+Organizers: create and manage events on the HackOS dashboard. One publish reaches every connected IDE simultaneously.

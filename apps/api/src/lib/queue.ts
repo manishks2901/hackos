@@ -15,22 +15,8 @@ export const ingestQueue = new Queue("ingest", {
   },
 });
 
-export const broadcastQueue = new Queue("broadcast", {
-  connection,
-  defaultJobOptions: {
-    attempts: 5,
-    backoff: { type: "exponential", delay: 2000 },
-    removeOnComplete: 1000,
-    removeOnFail: 5000,
-  },
-});
-
 export function enqueueIngest(hackathonId: string, resourceId: string): void {
   ingestQueue.add("ingest", { hackathonId, resourceId }).catch(() => {
     // Redis down: content still saved; the resource re-indexes on its next edit.
   });
-}
-
-export function enqueueBroadcast(hackathonId: string, announcementId: string): void {
-  broadcastQueue.add("broadcast", { hackathonId, announcementId }).catch(() => {});
 }

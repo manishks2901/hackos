@@ -63,12 +63,6 @@ interface Invite {
   maxUses: number | null;
   revoked: boolean;
 }
-interface Integration {
-  id: string;
-  kind: "discord" | "telegram";
-  config: Record<string, string>;
-  status: string;
-}
 
 const TABS = [
   "Content",
@@ -78,7 +72,6 @@ const TABS = [
   "Sponsors",
   "Analytics",
   "Invites",
-  "Integrations",
 ] as const;
 
 const CATEGORIES = [
@@ -142,7 +135,6 @@ export default function EventPage() {
       {tab === "Sponsors" && <SponsorsTab id={id} isOrganizer={isOrganizer} />}
       {tab === "Analytics" && <AnalyticsTab id={id} />}
       {tab === "Invites" && <InvitesTab id={id} />}
-      {tab === "Integrations" && <IntegrationsTab id={id} />}
     </main>
   );
 }
@@ -896,88 +888,6 @@ function InvitesTab({ id }: { id: string }) {
                 Revoke
               </button>
             )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function IntegrationsTab({ id }: { id: string }) {
-  const { items, error, reload, setError } = useList<Integration>(
-    `/v1/hackathons/${id}/integrations`,
-  );
-  const [kind, setKind] = useState<"discord" | "telegram">("discord");
-  const [channel, setChannel] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  async function connect(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      const config =
-        kind === "discord" ? { webhookUrl: channel } : { chatId: channel };
-      await api(`/v1/hackathons/${id}/integrations`, { method: "POST", body: { kind, config } });
-      setChannel("");
-      reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div>
-      <form className="card" onSubmit={connect} style={{ marginBottom: 24 }}>
-        <p style={{ fontSize: 14, color: "var(--text-dim)", marginBottom: 16 }}>
-          Connect a channel — every announcement will broadcast there automatically once the
-          notification worker ships (Phase 5). Connections are stored and shown now.
-        </p>
-        <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12 }}>
-          <div className="field">
-            <label>Channel</label>
-            <select
-              value={kind}
-              onChange={(e) => setKind(e.target.value as "discord" | "telegram")}
-            >
-              <option value="discord">Discord</option>
-              <option value="telegram">Telegram</option>
-            </select>
-          </div>
-          <div className="field">
-            <label>{kind === "discord" ? "Webhook URL" : "Chat ID"}</label>
-            <input
-              value={channel}
-              onChange={(e) => setChannel(e.target.value)}
-              placeholder={kind === "discord" ? "https://discord.com/api/webhooks/…" : "-100123456789"}
-              required
-            />
-          </div>
-        </div>
-        <button className="btn" disabled={busy}>{busy ? "…" : "Connect"}</button>
-      </form>
-      {error && <p className="error">{error}</p>}
-      <div className="card">
-        {items.length === 0 && <p className="hint">No integrations connected.</p>}
-        {items.map((i) => (
-          <div className="row" key={i.id}>
-            <div>
-              <strong style={{ textTransform: "capitalize" }}>{i.kind}</strong>{" "}
-              <span className={`pill ${i.status === "active" ? "ok" : "high"}`}>{i.status}</span>
-              <p className="hint" style={{ marginTop: 4 }}>
-                {i.config.webhookUrl ?? i.config.chatId ?? ""}
-              </p>
-            </div>
-            <button
-              className="btn-sm"
-              onClick={() =>
-                api(`/v1/hackathons/${id}/integrations/${i.id}`, { method: "DELETE" }).then(reload)
-              }
-            >
-              Disconnect
-            </button>
           </div>
         ))}
       </div>

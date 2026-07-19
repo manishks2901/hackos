@@ -3,7 +3,6 @@ import { createAnnouncementSchema } from "@hackos/shared";
 import { getPool } from "@hackos/db";
 import { requireMember } from "../lib/authz.js";
 import { publish } from "../lib/realtime.js";
-import { enqueueBroadcast } from "../lib/queue.js";
 import { audit } from "../lib/audit.js";
 
 const COLS =
@@ -65,7 +64,6 @@ export async function announcementRoutes(app: FastifyInstance) {
       [inserted.rows[0].id],
     );
     publish(req.params.id, { type: "announcement.created", payload: rows[0] });
-    enqueueBroadcast(req.params.id, rows[0].id);
     audit(req.params.id, member.userId, "announcement.create", rows[0].id, {
       title,
       priority,
