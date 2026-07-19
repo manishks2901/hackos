@@ -17,7 +17,20 @@ const ssl = isLocal
     ? { ca: process.env.DATABASE_CA_CERT, rejectUnauthorized: true }
     : { rejectUnauthorized: false };
 
-const client = new pg.Client({ connectionString, ssl });
+// node-postgres treats sslmode=require in the URL as "verify cert", overriding
+// the ssl config; strip it so the ssl object above is authoritative.
+let cs = connectionString;
+if (ssl) {
+  try {
+    const u = new URL(connectionString);
+    u.searchParams.delete("sslmode");
+    cs = u.toString();
+  } catch {
+    cs = connectionString.replace(/([?&])sslmode=[^&]*/i, "$1").replace(/[?&]$/, "");
+  }
+}
+
+const client = new pg.Client({ connectionString: cs, ssl });
 await client.connect();
 
 try {

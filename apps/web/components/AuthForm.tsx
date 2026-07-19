@@ -4,7 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, setTokens } from "../lib/api";
 
-export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
+export function AuthForm({
+  mode,
+  onAuthed,
+  submitLabel,
+}: {
+  mode: "signin" | "signup";
+  /** Called after successful auth. If provided, replaces the default redirect to /dashboard. */
+  onAuthed?: (creds: { email: string; name: string }) => void;
+  submitLabel?: string;
+}) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -23,7 +32,8 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
         { method: "POST", body, auth: false },
       );
       setTokens({ accessToken: res.accessToken, refreshToken: res.refreshToken });
-      router.push("/dashboard");
+      if (onAuthed) onAuthed({ email, name });
+      else router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "something went wrong");
     } finally {
@@ -70,7 +80,7 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
       </div>
       {error && <p className="error">{error}</p>}
       <button className="btn" disabled={busy} style={{ width: "100%" }}>
-        {busy ? "…" : mode === "signup" ? "Create account" : "Sign in"}
+        {busy ? "…" : (submitLabel ?? (mode === "signup" ? "Create account" : "Sign in"))}
       </button>
     </form>
   );

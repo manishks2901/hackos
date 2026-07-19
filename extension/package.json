@@ -129,17 +129,17 @@
       "properties": {
         "hackos.apiUrl": {
           "type": "string",
-          "default": "http://localhost:4010",
+          "default": "https://api-production-c174.up.railway.app",
           "description": "HackOS API base URL"
         },
         "hackos.aiUrl": {
           "type": "string",
-          "default": "http://localhost:4011",
+          "default": "https://ai-production-b78a.up.railway.app",
           "description": "HackOS AI service base URL"
         },
         "hackos.gatewayUrl": {
           "type": "string",
-          "default": "ws://localhost:4012",
+          "default": "wss://gateway-production-0fe6.up.railway.app",
           "description": "HackOS realtime gateway WebSocket URL"
         },
         "hackos.pet.type": {

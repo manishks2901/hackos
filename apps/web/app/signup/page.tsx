@@ -17,6 +17,9 @@ export default function SignUp() {
         <p className="hint">
           Already have an account? <Link href="/signin">Sign in</Link>
         </p>
+        <p className="hint" style={{ marginTop: 4 }}>
+          Joining as a participant? <Link href="/participant">Create a participant account →</Link>
+        </p>
       </div>
     </main>
   );
