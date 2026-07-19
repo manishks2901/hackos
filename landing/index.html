@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HackOS — The entire hackathon, inside your IDE</title>
+<meta name="description" content="An AI-powered, IDE-native operating system for hackathons. Announcements, docs, mentors, AI answers and submissions — all inside VS Code." />
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-raise: #101014;
+    --bg-card: #121218;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --text: #ededf0;
+    --text-dim: #a0a0ab;
+    --text-faint: #6e6e78;
+    --accent: #7c6cff;
+    --accent-soft: rgba(124, 108, 255, 0.14);
+    --green: #3ecf8e;
+    --amber: #f5b944;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    /* Strong custom curves — built-ins are too weak */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: rgba(124, 108, 255, 0.35); }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    background: rgba(10, 10, 12, 0.72);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 650; font-size: 15px; letter-spacing: -0.01em;
+    color: var(--text); text-decoration: none;
+  }
+  .logo-mark {
+    width: 24px; height: 24px; border-radius: 7px;
+    background: linear-gradient(135deg, #8f7bff, #5b46f0);
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 12px; font-weight: 700; color: #fff;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset, 0 4px 14px rgba(124,108,255,0.35);
+  }
+  .nav-links { display: flex; align-items: center; gap: 28px; }
+  .nav-links a {
+    color: var(--text-dim); text-decoration: none; font-size: 14px;
+    transition: color 150ms ease;
+  }
+  .nav-links a.cta { color: var(--text); }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-links a:hover { color: var(--text); }
+  }
+  @media (max-width: 640px) { .nav-links a:not(.cta) { display: none; } }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 550; letter-spacing: -0.01em;
+    padding: 10px 18px; border-radius: 10px;
+    text-decoration: none; cursor: pointer; border: none;
+    transition: transform 160ms var(--ease-out), background 150ms ease, border-color 150ms ease;
+    will-change: transform;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(180deg, #8f7bff, #6d59f5);
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.14) inset, 0 8px 24px rgba(109,89,245,0.35);
+  }
+  .btn-ghost {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border-strong);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover { background: linear-gradient(180deg, #9a88ff, #7863ff); }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.28); background: rgba(255,255,255,0.03); }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    padding: 96px 0 48px;
+    text-align: center;
+  }
+  /* ambient glow + grid */
+  .hero::before {
+    content: ""; position: absolute; inset: -200px 0 0;
+    background:
+      radial-gradient(600px 320px at 50% 10%, rgba(124,108,255,0.16), transparent 70%),
+      radial-gradient(400px 240px at 68% 4%, rgba(62,207,142,0.06), transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 75%);
+    pointer-events: none;
+  }
+  .hero .wrap { position: relative; z-index: 1; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    border: 1px solid var(--border-strong); border-radius: 999px;
+    padding: 6px 14px; margin-bottom: 28px;
+    background: rgba(255,255,255,0.02);
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+  }
+
+  h1 {
+    font-size: clamp(40px, 6.4vw, 68px);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 650;
+    max-width: 15ch;
+    margin: 0 auto 20px;
+  }
+  h1 .grad {
+    background: linear-gradient(92deg, #b9adff 0%, #7c6cff 45%, #5ad6a0 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+
+  .sub {
+    font-size: 17px; line-height: 1.6; color: var(--text-dim);
+    max-width: 58ch; margin: 0 auto 36px;
+    text-wrap: balance;
+  }
+
+  .hero-ctas { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+
+  .hero-hint {
+    font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+  }
+  .hero-hint code {
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    padding: 2px 7px; border-radius: 6px;
+  }
+
+  /* Hero entrance — first-visit only territory, so delight is allowed. Stagger, short travel. */
+  .stagger {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: rise 600ms var(--ease-out) forwards;
+  }
+  .stagger.d1 { animation-delay: 60ms; }
+  .stagger.d2 { animation-delay: 120ms; }
+  .stagger.d3 { animation-delay: 180ms; }
+  .stagger.d4 { animation-delay: 240ms; }
+  .stagger.d5 { animation-delay: 320ms; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  /* ---------- VS Code mockup ---------- */
+  .mock-outer {
+    position: relative;
+    margin: 56px auto 0;
+    max-width: 960px;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.03) 40%);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 90px rgba(124,108,255,0.10);
+  }
+  .mock {
+    border-radius: 15px; overflow: hidden;
+    background: #0d0d11;
+    text-align: left;
+    font-size: 12.5px;
+  }
+  .mock-titlebar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: #131318;
+    border-bottom: 1px solid var(--border);
+  }
+  .tl-dot { width: 11px; height: 11px; border-radius: 50%; }
+  .mock-title {
+    flex: 1; text-align: center;
+    font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+  }
+  .mock-body { display: grid; grid-template-columns: 218px 1fr; min-height: 380px; }
+  @media (max-width: 720px) { .mock-body { grid-template-columns: 1fr; } .mock-side { display: none; } }
+
+  .mock-side {
+    border-right: 1px solid var(--border);
+    padding: 12px 0;
+    background: #0e0e12;
+  }
+  .side-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+    color: var(--text-faint); text-transform: uppercase;
+    padding: 6px 16px;
+  }
+  .side-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 6px 16px; color: var(--text-dim);
+    font-size: 12.5px;
+  }
+  .side-item .ic { width: 15px; text-align: center; opacity: 0.85; }
+  .side-item.active { background: var(--accent-soft); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
+  .side-item .count {
+    margin-left: auto;
+    font-family: var(--mono); font-size: 10px;
+    background: var(--accent); color: #fff;
+    border-radius: 999px; padding: 1px 6px;
+  }
+
+  .mock-main { position: relative; padding: 18px 20px; overflow: hidden; }
+  .chat-q {
+    display: inline-block;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    padding: 8px 12px; border-radius: 10px 10px 10px 3px;
+    color: var(--text); margin-bottom: 14px;
+  }
+  .chat-a {
+    max-width: 92%;
+    background: rgba(124,108,255,0.07);
+    border: 1px solid rgba(124,108,255,0.22);
+    border-radius: 3px 12px 12px 12px;
+    padding: 12px 14px;
+    color: var(--text-dim); line-height: 1.6;
+  }
+  .chat-a strong { color: var(--text); font-weight: 600; }
+  .cite {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--mono); font-size: 10.5px;
+    color: #b3a7ff; background: rgba(124,108,255,0.12);
+    border: 1px solid rgba(124,108,255,0.25);
+    padding: 2px 8px; border-radius: 6px;
+    margin: 2px 3px 0 0;
+    text-decoration: none;
+  }
+  .chat-a .cites { margin-top: 10px; }
+
+  /* typing caret */
+  .caret {
+    display: inline-block; width: 7px; height: 13px;
+    background: #b3a7ff; vertical-align: -2px; margin-left: 2px;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Announcement toast — explanatory demo animation, loops slowly */
+  .mock-toast {
+    position: absolute; right: 16px; bottom: 16px;
+    width: 270px;
+    background: #17171d;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: translateY(calc(100% + 16px));
+    animation: toast-cycle 9s var(--ease-out) infinite;
+    animation-delay: 1.6s;
+  }
+  .mock-toast .t-head {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11px; font-weight: 600; color: var(--amber);
+    margin-bottom: 5px;
+  }
+  .mock-toast .t-body { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .mock-toast .t-meta {
+    display: flex; gap: 10px; margin-top: 8px;
+    font-family: var(--mono); font-size: 10px; color: var(--text-faint);
+  }
+  @keyframes toast-cycle {
+    0%   { opacity: 0; transform: translateY(calc(100% + 16px)); }
+    6%   { opacity: 1; transform: translateY(0); }
+    82%  { opacity: 1; transform: translateY(0); }
+    88%  { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 0; transform: translateY(calc(100% + 16px)); }
+  }
+
+  .statusbar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 6px 14px;
+    background: #101015;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono); font-size: 10.5px; color: var(--text-faint);
+  }
+  .statusbar .live { color: var(--green); }
+  .statusbar .deadline { color: var(--amber); }
+
+  /* ---------- Sections ---------- */
+  section { padding: 96px 0; position: relative; }
+  .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #a99cff;
+    margin-bottom: 14px;
+  }
+  h2 {
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: -0.03em; font-weight: 650; line-height: 1.12;
+    max-width: 22ch;
+  }
+  .section-sub { color: var(--text-dim); font-size: 16px; line-height: 1.65; max-width: 56ch; margin-top: 14px; }
+
+  /* Scroll reveal — short travel, once, ease-out */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out);
+    transition-delay: var(--rd, 0ms);
+  }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  /* ---------- Feature grid ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 48px;
+  }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    transition: transform 200ms var(--ease-out), border-color 200ms ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover { transform: translateY(-3px); border-color: rgba(124,108,255,0.35); }
+  }
+  .card .ico {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: var(--accent-soft);
+    border: 1px solid rgba(124,108,255,0.25);
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  .card h3 { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .card p { font-size: 13.5px; line-height: 1.6; color: var(--text-dim); }
+  .card p code {
+    font-family: var(--mono); font-size: 11.5px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    padding: 1px 5px; border-radius: 5px; color: var(--text-dim);
+  }
+
+  /* ---------- How it works ---------- */
+  .steps {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-top: 48px;
+    counter-reset: step;
+  }
+  @media (max-width: 800px) { .steps { grid-template-columns: 1fr; } }
+  .step {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px 24px 24px;
+  }
+  .step::before {
+    counter-increment: step;
+    content: "0" counter(step);
+    font-family: var(--mono); font-size: 12px; color: #a99cff;
+    display: block; margin-bottom: 14px;
+  }
+  .step h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .step p { font-size: 13.5px; line-height: 1.6; color: var(--text-dim); }
+
+  /* ---------- Broadcast strip ---------- */
+  .broadcast {
+    margin-top: 48px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background:
+      radial-gradient(400px 200px at 12% 0%, rgba(124,108,255,0.10), transparent 70%),
+      var(--bg-card);
+    padding: 36px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 32px; flex-wrap: wrap;
+  }
+  .broadcast h3 { font-size: 20px; letter-spacing: -0.02em; font-weight: 640; margin-bottom: 8px; }
+  .broadcast p { color: var(--text-dim); font-size: 14px; line-height: 1.6; max-width: 46ch; }
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border: 1px solid var(--border-strong); border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    padding: 9px 14px;
+  }
+  .chip .sq { width: 8px; height: 8px; border-radius: 3px; }
+
+  /* ---------- CTA ---------- */
+  .cta-final {
+    text-align: center;
+    padding: 110px 0 120px;
+    position: relative;
+  }
+  .cta-final::before {
+    content: ""; position: absolute; inset: auto 0 0;
+    height: 420px;
+    background: radial-gradient(560px 300px at 50% 100%, rgba(124,108,255,0.14), transparent 70%);
+    pointer-events: none;
+  }
+  .cta-final .wrap { position: relative; }
+  .cta-final h2 { margin: 0 auto 16px; }
+  .cta-final .section-sub { margin: 0 auto 36px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 0;
+  }
+  .foot {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    font-size: 13px; color: var(--text-faint);
+  }
+  .foot a { color: var(--text-dim); text-decoration: none; margin-left: 20px; transition: color 150ms ease; }
+  @media (hover: hover) and (pointer: fine) { .foot a:hover { color: var(--text); } }
+
+  /* ---------- Reduced motion: keep fades, remove movement ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .stagger { animation: fade-only 300ms ease forwards; transform: none; }
+    .reveal { transform: none; transition: opacity 300ms ease; }
+    .mock-toast { animation: toast-fade 9s ease infinite; animation-delay: 1.6s; transform: none; }
+    .btn:active { transform: none; }
+    @keyframes fade-only { to { opacity: 1; } }
+    @keyframes toast-fade {
+      0% { opacity: 0; } 6% { opacity: 1; } 82% { opacity: 1; } 88% { opacity: 0; } 100% { opacity: 0; }
+    }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a class="logo" href="#">
+      <span class="logo-mark">&gt;_</span>
+      HackOS
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#organizers">For organizers</a>
+      <a class="btn btn-primary cta" href="#get-started" style="padding: 8px 15px;">Install extension</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="badge stagger d1"><span class="dot"></span> Live during your event · IDE-native</div>
+    <h1 class="stagger d2">The entire hackathon,<br /><span class="grad">inside your IDE.</span></h1>
+    <p class="sub stagger d3">
+      Stop juggling Discord, email, Drive and Devpost. HackOS syncs every announcement,
+      doc, deadline and mentor into VS Code — with an AI that answers event questions,
+      with citations, in seconds.
+    </p>
+    <div class="hero-ctas stagger d4">
+      <a class="btn btn-primary" href="#get-started">Install for VS Code</a>
+      <a class="btn btn-ghost" href="#organizers">Create a hackathon →</a>
+    </div>
+    <p class="hero-hint stagger d4">Join an event in seconds: <code>⌘⇧P → Hackathon: Join</code></p>
+
+    <div class="mock-outer stagger d5" aria-hidden="true">
+      <div class="mock">
+        <div class="mock-titlebar">
+          <span class="tl-dot" style="background:#ff5f57"></span>
+          <span class="tl-dot" style="background:#febc2e"></span>
+          <span class="tl-dot" style="background:#28c840"></span>
+          <span class="mock-title">HackNight 2026 — Visual Studio Code</span>
+        </div>
+        <div class="mock-body">
+          <aside class="mock-side">
+            <div class="side-label">HackNight 2026</div>
+            <div class="side-item"><span class="ic">▸</span> Problem Statements</div>
+            <div class="side-item"><span class="ic">▸</span> Docs &amp; Resources</div>
+            <div class="side-item"><span class="ic">▸</span> Sponsor APIs</div>
+            <div class="side-item active"><span class="ic">◆</span> AI Assistant</div>
+            <div class="side-item"><span class="ic">▸</span> Announcements <span class="count">3</span></div>
+            <div class="side-item"><span class="ic">▸</span> Timeline</div>
+            <div class="side-item"><span class="ic">▸</span> Team — nullpointers</div>
+            <div class="side-item"><span class="ic">▸</span> Submit Project</div>
+          </aside>
+          <div class="mock-main">
+            <div class="chat-q">can we use a pre-built auth library or does it count as boilerplate?</div>
+            <div class="chat-a">
+              <strong>Yes — pre-built auth libraries are allowed.</strong> The rules only prohibit
+              full app templates. Rule 4.2 states that “authentication, UI kits and infrastructure
+              libraries are permitted, provided core project logic is written during the event.”<span class="caret"></span>
+              <div class="cites">
+                <span class="cite">§ rules.md · 4.2</span>
+                <span class="cite">§ faq.md · Q7</span>
+              </div>
+            </div>
+
+            <div class="mock-toast">
+              <div class="t-head">⚡ ANNOUNCEMENT · HIGH PRIORITY</div>
+              <div class="t-body">Submission deadline extended by 2 hours — now 6:00 PM.</div>
+              <div class="t-meta"><span>via dashboard</span><span>→ also sent to Discord + Telegram</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span class="live">● connected</span>
+          <span class="deadline">⏱ submissions in 04:12:33</span>
+          <span>HackNight 2026</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="kicker reveal">Everything, one surface</div>
+    <h2 class="reveal">Your event, where your hands already are</h2>
+    <p class="section-sub reveal">
+      Participants lose hours to context switching across eight apps.
+      HackOS collapses the whole event into the editor they never leave.
+    </p>
+
+    <div class="grid">
+      <div class="card reveal" style="--rd: 0ms">
+        <div class="ico">⚡</div>
+        <h3>Real-time announcements</h3>
+        <p>Rule changes and deadline shifts land in the IDE in under two seconds. High-priority updates toast; the rest badge quietly. Nothing gets missed.</p>
+      </div>
+      <div class="card reveal" style="--rd: 50ms">
+        <div class="ico">◆</div>
+        <h3>AI that cites its sources</h3>
+        <p>Ask anything about rules, judging or sponsor APIs. Answers come grounded in <em>your</em> event docs with citations that open the source — or it says it doesn't know.</p>
+      </div>
+      <div class="card reveal" style="--rd: 100ms">
+        <div class="ico">⟳</div>
+        <h3>Everything synced, even offline</h3>
+        <p>Problem statements, docs, schedules and sponsor resources cached locally. Conference Wi-Fi dies; your event doesn't.</p>
+      </div>
+      <div class="card reveal" style="--rd: 0ms">
+        <div class="ico">⌕</div>
+        <h3>Semantic search</h3>
+        <p>Search by meaning, not keywords. <code>“prize for best use of the payments API”</code> finds the right sponsor doc instantly.</p>
+      </div>
+      <div class="card reveal" style="--rd: 50ms">
+        <div class="ico">◉</div>
+        <h3>Teams &amp; mentors, in-editor</h3>
+        <p>Team chat, community channels and mentor availability live in the sidebar. Get unstuck without alt-tabbing away from the bug.</p>
+      </div>
+      <div class="card reveal" style="--rd: 100ms">
+        <div class="ico">➤</div>
+        <h3>Submit without leaving</h3>
+        <p>Repo, description, demo link — submitted from the command palette with a live deadline countdown in the status bar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="padding-top: 0;">
+  <div class="wrap">
+    <div class="kicker reveal">How it works</div>
+    <h2 class="reveal">Publish once. Reach everyone. Everywhere.</h2>
+
+    <div class="steps">
+      <div class="step reveal" style="--rd: 0ms">
+        <h3>Organizers publish</h3>
+        <p>Create your event on the dashboard: problem statements, rules, sponsor APIs, judging criteria, schedule. Share one invite code.</p>
+      </div>
+      <div class="step reveal" style="--rd: 50ms">
+        <h3>Participants connect</h3>
+        <p>Sign in, enter the code, and the extension syncs the entire event into VS Code. The AI assistant indexes every document automatically.</p>
+      </div>
+      <div class="step reveal" style="--rd: 100ms">
+        <h3>Everyone stays in flow</h3>
+        <p>Updates stream to every IDE, Discord server and Telegram group at once. Questions get instant cited answers instead of pinging organizers.</p>
+      </div>
+    </div>
+
+    <div class="broadcast reveal" id="organizers">
+      <div>
+        <h3>One publish → IDE + Discord + Telegram</h3>
+        <p>Connect your Discord server and Telegram group once. Every announcement broadcasts everywhere simultaneously — formatted, prioritized, with delivery logs on your dashboard.</p>
+      </div>
+      <div class="chips">
+        <span class="chip"><span class="sq" style="background:#7c6cff"></span> VS Code</span>
+        <span class="chip"><span class="sq" style="background:#5865F2"></span> Discord</span>
+        <span class="chip"><span class="sq" style="background:#2AABEE"></span> Telegram</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-final" id="get-started">
+  <div class="wrap">
+    <div class="kicker reveal">Get started</div>
+    <h2 class="reveal" style="max-width: 20ch; margin-left:auto; margin-right:auto;">Run your next hackathon on HackOS</h2>
+    <p class="section-sub reveal" style="text-align:center;">
+      Free for participants. Organizers set up an event in under ten minutes.
+    </p>
+    <div class="hero-ctas reveal">
+      <a class="btn btn-primary" href="#">Install for VS Code</a>
+      <a class="btn btn-ghost" href="#">Create a hackathon →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span>© 2026 HackOS — the operating system for hackathons.</span>
+    <span>
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#">Docs</a>
+      <a href="#">GitHub</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveals: once, short travel, ease-out. Decorative — never blocks interaction.
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    }
+  }, { rootMargin: '-60px 0px' });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+
+</body>
+</html>

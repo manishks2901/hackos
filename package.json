@@ -1,0 +1,18 @@
+{
+  "name": "hackos-monorepo",
+  "private": true,
+  "description": "AI-powered IDE-native operating system for hackathons",
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm -r build",
+    "migrate": "pnpm --filter @hackos/db migrate",
+    "dev:api": "pnpm --filter @hackos/api dev",
+    "dev:web": "pnpm --filter @hackos/web dev",
+    "dev:ai": "pnpm --filter @hackos/ai dev",
+    "dev:gateway": "pnpm --filter @hackos/gateway dev",
+    "dev:workers": "pnpm --filter @hackos/workers dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

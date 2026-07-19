@@ -1,0 +1,184 @@
+{
+  "name": "hackos",
+  "displayName": "HackOS",
+  "description": "The entire hackathon, inside your IDE.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "hackos",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "hackos",
+          "title": "HackOS",
+          "icon": "media/icon.svg"
+        }
+      ],
+      "panel": [
+        {
+          "id": "hackos-pet",
+          "title": "HackOS Pet",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "hackos": [
+        {
+          "id": "hackos.event",
+          "name": "Event"
+        },
+        {
+          "id": "hackos.chat",
+          "type": "webview",
+          "name": "AI Assistant"
+        },
+        {
+          "id": "hackos.teamchat",
+          "type": "webview",
+          "name": "Chat"
+        },
+        {
+          "id": "hackos.sponsors",
+          "type": "webview",
+          "name": "Sponsors"
+        }
+      ],
+      "hackos-pet": [
+        {
+          "id": "hackos.pet",
+          "type": "webview",
+          "name": "Pet"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "hackathon.signIn",
+        "title": "Hackathon: Sign In"
+      },
+      {
+        "command": "hackathon.signOut",
+        "title": "Hackathon: Sign Out"
+      },
+      {
+        "command": "hackathon.join",
+        "title": "Hackathon: Join with Invite Code"
+      },
+      {
+        "command": "hackathon.leave",
+        "title": "Hackathon: Leave Event"
+      },
+      {
+        "command": "hackathon.sync",
+        "title": "Hackathon: Sync"
+      },
+      {
+        "command": "hackathon.search",
+        "title": "Hackathon: Search Event Resources"
+      },
+      {
+        "command": "hackathon.summarize",
+        "title": "Hackathon: Summarize Today's Announcements"
+      },
+      {
+        "command": "hackathon.createTeam",
+        "title": "Hackathon: Create Team"
+      },
+      {
+        "command": "hackathon.joinTeam",
+        "title": "Hackathon: Join Team"
+      },
+      {
+        "command": "hackathon.submitProject",
+        "title": "Hackathon: Submit Project"
+      },
+      {
+        "command": "hackathon.openSponsor",
+        "title": "Hackathon: Open Sponsor Site"
+      },
+      {
+        "command": "hackos.pet.history",
+        "title": "HackOS: Pet — Announcement History"
+      },
+      {
+        "command": "hackos.pet.parade",
+        "title": "HackOS: Pet — Parade (demo all activities)"
+      },
+      {
+        "command": "hackos.pet.test",
+        "title": "HackOS: Pet — Send Test Notification"
+      }
+    ],
+    "viewsWelcome": [
+      {
+        "view": "hackos.event",
+        "contents": "Your entire hackathon, inside VS Code.\nDocs, announcements, deadlines, teammates and an AI assistant that knows your event.\n[Sign In](command:hackathon.signIn)\n[Join with Invite Code](command:hackathon.join)\nGet an invite code from your event organizer."
+      }
+    ],
+    "configuration": {
+      "title": "HackOS",
+      "properties": {
+        "hackos.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:4010",
+          "description": "HackOS API base URL"
+        },
+        "hackos.aiUrl": {
+          "type": "string",
+          "default": "http://localhost:4011",
+          "description": "HackOS AI service base URL"
+        },
+        "hackos.gatewayUrl": {
+          "type": "string",
+          "default": "ws://localhost:4012",
+          "description": "HackOS realtime gateway WebSocket URL"
+        },
+        "hackos.pet.type": {
+          "type": "string",
+          "enum": ["fox", "cat", "duck", "slime"],
+          "default": "fox",
+          "description": "Which HackOS pet lives in the bottom panel."
+        },
+        "hackos.pet.reducedMotion": {
+          "type": "boolean",
+          "default": false,
+          "description": "Reduce the pet's motion effects (no confetti, world props, or pulsing)."
+        }
+      }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "hackathon.sync",
+          "when": "view == hackos.event",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --platform=node --format=cjs --sourcemap",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "package": "pnpm build && vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.90.0",
+    "@types/ws": "^8.18.1",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.1",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "ws": "^8.21.1"
+  }
+}
